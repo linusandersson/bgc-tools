@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Background Checks — What's proportionate, by role and country</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --canvas:#FBFBFB;
+    --ink:#090312;
+    --ink-60:#54505e;
+    --ink-40:#8a8794;
+    --line:#ECECEF;
+    --line-soft:#F3F3F6;
+    --p-solid:#5A54D6;   /* standard fill */
+    --p-mid:#B9B9FF;     /* brand accent / ring */
+    --p-soft:#EDECFD;    /* role-dependent fill */
+    --p-tint:#F5F4FE;    /* panel tint */
+    --na:#F0F0F3;        /* no-basis fill */
+    --na-ink:#9a98a6;
+    --radius:14px;
+    --card-shadow:0 1px 2px rgba(9,3,18,.04), 0 8px 24px rgba(9,3,18,.05);
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--canvas);color:var(--ink);}
+  body{-webkit-font-smoothing:antialiased;line-height:1.5;}
+
+  .bgc-wrap{max-width:1120px;margin:0 auto;padding:48px 28px 64px;}
+
+  /* ---------- header ---------- */
+  .bgc-eyebrow{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--p-solid);margin:0 0 14px;}
+  .bgc-title{font-family:'Poppins',sans-serif;font-weight:700;font-size:clamp(28px,4vw,42px);line-height:1.08;letter-spacing:-.02em;margin:0 0 14px;max-width:18ch;}
+  .bgc-title em{font-style:normal;background:linear-gradient(transparent 62%, var(--p-mid) 62%);padding:0 .04em;}
+  .bgc-sub{font-size:16px;color:var(--ink-60);margin:0;max-width:62ch;}
+
+  /* ---------- country tabs ---------- */
+  .bgc-tabs{display:inline-flex;gap:4px;margin:34px 0 22px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:5px;box-shadow:var(--card-shadow);flex-wrap:wrap;}
+  .bgc-tab{appearance:none;border:0;background:transparent;cursor:pointer;font-family:'Inter',sans-serif;font-size:14px;font-weight:600;color:var(--ink-60);padding:9px 18px;border-radius:999px;display:flex;align-items:baseline;gap:8px;transition:background .18s ease,color .18s ease;}
+  .bgc-tab .code{font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--ink-40);}
+  .bgc-tab:hover{color:var(--ink);}
+  .bgc-tab[aria-selected="true"]{background:var(--ink);color:#fff;}
+  .bgc-tab[aria-selected="true"] .code{color:rgba(255,255,255,.6);}
+  .bgc-tab:focus-visible{outline:2px solid var(--p-solid);outline-offset:2px;}
+
+  /* ---------- matrix card ---------- */
+  .bgc-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--card-shadow);overflow:hidden;}
+  .bgc-scroll{overflow-x:auto;}
+  .bgc-grid{display:grid;grid-template-columns:minmax(186px,1.5fr) repeat(8,minmax(66px,1fr));min-width:720px;}
+
+  .bgc-corner{padding:18px 18px 14px;border-bottom:1px solid var(--line);border-right:1px solid var(--line-soft);position:sticky;left:0;background:#fff;z-index:3;}
+  .bgc-corner span{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-40);}
+
+  .bgc-colhead{padding:16px 8px 13px;border-bottom:1px solid var(--line);text-align:center;}
+  .bgc-colhead .ch-l{display:block;font-size:12.5px;font-weight:600;color:var(--ink);line-height:1.2;}
+  .bgc-colhead .ch-s{display:block;font-size:10.5px;font-weight:500;color:var(--ink-40);margin-top:2px;}
+
+  .bgc-rolelabel{padding:15px 18px;border-bottom:1px solid var(--line-soft);position:sticky;left:0;background:#fff;z-index:2;}
+  .bgc-grid .bgc-row:last-child .bgc-rolelabel,
+  .bgc-grid .bgc-row:last-child .bgc-cellwrap{border-bottom:0;}
+  .bgc-rolelabel .rl-l{font-size:14px;font-weight:600;color:var(--ink);line-height:1.25;}
+  .bgc-rolelabel .rl-d{font-size:11.5px;color:var(--ink-40);margin-top:3px;line-height:1.3;}
+
+  .bgc-row{display:contents;}
+  .bgc-row:hover .bgc-rolelabel{background:var(--line-soft);}
+
+  .bgc-cellwrap{border-bottom:1px solid var(--line-soft);border-left:1px solid var(--line-soft);display:flex;align-items:center;justify-content:center;padding:9px 6px;}
+  .bgc-cell{
+    width:38px;height:38px;border-radius:11px;border:1.5px solid transparent;
+    display:flex;align-items:center;justify-content:center;
+    font-size:15px;cursor:default;background:transparent;color:transparent;
+    transition:transform .14s ease, box-shadow .14s ease;
+  }
+  .bgc-cell:focus-visible{outline:2px solid var(--p-solid);outline-offset:2px;}
+  .bgc-cell.lv-2{background:var(--p-solid);color:#fff;}
+  .bgc-cell.lv-1{background:var(--p-soft);border-color:var(--p-mid);color:var(--p-solid);}
+  .bgc-cell.lv-0{background:var(--canvas);color:#cfced9;}
+  .bgc-cell.lv-na{
+    background:repeating-linear-gradient(45deg,var(--na),var(--na) 5px,#e7e7ec 5px,#e7e7ec 6px);
+    color:var(--na-ink);
+  }
+  .bgc-cell:hover{transform:scale(1.08);box-shadow:0 4px 12px rgba(9,3,18,.12);}
+
+  /* column hover highlight */
+  .bgc-grid.col-hl-1 .c-1,.bgc-grid.col-hl-2 .c-2,.bgc-grid.col-hl-3 .c-3,
+  .bgc-grid.col-hl-4 .c-4,.bgc-grid.col-hl-5 .c-5,.bgc-grid.col-hl-6 .c-6,
+  .bgc-grid.col-hl-7 .c-7,.bgc-grid.col-hl-8 .c-8{background:var(--p-tint);}
+
+  /* switch animation on criminal + credit */
+  @keyframes pop{from{opacity:.2;transform:translateY(5px) scale(.94);}to{opacity:1;transform:none;}}
+  .bgc-cell.is-anim{animation:pop .34s cubic-bezier(.2,.7,.3,1) both;}
+
+  /* ---------- below the grid ---------- */
+  .bgc-below{display:grid;grid-template-columns:1fr 1.25fr;gap:18px;margin-top:18px;}
+  @media (max-width:760px){.bgc-below{grid-template-columns:1fr;}}
+
+  .bgc-panel{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--card-shadow);padding:22px 22px;}
+  .bgc-panel h3{font-family:'Poppins',sans-serif;font-size:13px;font-weight:600;letter-spacing:.02em;margin:0 0 16px;color:var(--ink);}
+
+  .bgc-legend li{display:flex;align-items:flex-start;gap:12px;list-style:none;margin:0 0 13px;}
+  .bgc-legend ul{margin:0;padding:0;}
+  .bgc-legend li:last-child{margin-bottom:0;}
+  .lg-chip{flex:0 0 auto;width:28px;height:28px;border-radius:9px;border:1.5px solid transparent;display:flex;align-items:center;justify-content:center;font-size:13px;margin-top:1px;}
+  .lg-chip.lv-2{background:var(--p-solid);color:#fff;}
+  .lg-chip.lv-1{background:var(--p-soft);border-color:var(--p-mid);color:var(--p-solid);}
+  .lg-chip.lv-0{background:var(--canvas);color:#cfced9;}
+  .lg-chip.lv-na{background:repeating-linear-gradient(45deg,var(--na),var(--na) 5px,#e7e7ec 5px,#e7e7ec 6px);color:var(--na-ink);}
+  .lg-t{font-size:13px;}
+  .lg-t b{font-weight:600;color:var(--ink);}
+  .lg-t span{color:var(--ink-60);}
+
+  .bgc-access .ac-flag{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--p-solid);background:var(--p-tint);border:1px solid var(--p-mid);border-radius:999px;padding:3px 11px;margin-bottom:14px;}
+  .bgc-access .ac-h{font-family:'Poppins',sans-serif;font-size:15px;font-weight:600;margin:0 0 8px;line-height:1.3;}
+  .bgc-access .ac-b{font-size:13.5px;color:var(--ink-60);margin:0;}
+  .bgc-access .ac-note{font-size:12px;color:var(--ink-40);margin:14px 0 0;padding-top:13px;border-top:1px solid var(--line-soft);}
+
+  .bgc-strip{margin-top:18px;background:var(--p-tint);border:1px solid var(--p-mid);border-radius:var(--radius);padding:18px 22px;display:flex;gap:14px;align-items:flex-start;}
+  .bgc-strip .st-dot{flex:0 0 auto;width:8px;height:8px;border-radius:50%;background:var(--p-solid);margin-top:7px;}
+  .bgc-strip p{margin:0;font-size:13.5px;color:var(--ink);}
+  .bgc-strip b{font-weight:600;}
+
+  .bgc-foot{margin-top:26px;font-size:11.5px;color:var(--ink-40);line-height:1.55;max-width:80ch;}
+  .bgc-foot b{color:var(--ink-60);font-weight:600;}
+
+  /* ---------- tooltip ---------- */
+  .bgc-tip{position:fixed;z-index:50;max-width:268px;background:var(--ink);color:#fff;border-radius:10px;padding:11px 13px;font-size:12.5px;line-height:1.45;box-shadow:0 10px 30px rgba(9,3,18,.22);opacity:0;transform:translateY(4px);transition:opacity .14s ease,transform .14s ease;pointer-events:none;}
+  .bgc-tip.show{opacity:1;transform:none;}
+  .bgc-tip .tip-h{font-weight:600;display:block;margin-bottom:4px;}
+  .bgc-tip .tip-h em{font-style:normal;color:var(--p-mid);}
+  .bgc-tip .tip-m{color:rgba(255,255,255,.78);}
+  .bgc-tip .tip-n{display:block;margin-top:7px;padding-top:7px;border-top:1px solid rgba(255,255,255,.16);color:#fff;}
+
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important;}
+    .bgc-cell:hover{transform:none;}
+  }
+</style>
+</head>
+<body>
+<div class="bgc-wrap">
+  <p class="bgc-eyebrow">Talentech · Background Checks</p>
+  <h1 class="bgc-title">What's <em>proportionate</em>, by role and country</h1>
+  <p class="bgc-sub">A quick reference for which checks fit which roles across the Nordics — and how access works in each market. Pick a country, then read a row.</p>
+
+  <div class="bgc-tabs" role="tablist" aria-label="Country">
+    <button class="bgc-tab" role="tab" data-cc="SE" aria-selected="true"><span>Sweden</span><span class="code">SE</span></button>
+    <button class="bgc-tab" role="tab" data-cc="NO" aria-selected="false"><span>Norway</span><span class="code">NO</span></button>
+    <button class="bgc-tab" role="tab" data-cc="DK" aria-selected="false"><span>Denmark</span><span class="code">DK</span></button>
+    <button class="bgc-tab" role="tab" data-cc="FI" aria-selected="false"><span>Finland</span><span class="code">FI</span></button>
+  </div>
+
+  <div class="bgc-card">
+    <div class="bgc-scroll">
+      <div class="bgc-grid" id="grid"></div>
+    </div>
+  </div>
+
+  <div class="bgc-below">
+    <div class="bgc-panel bgc-legend">
+      <h3>How to read a cell</h3>
+      <ul>
+        <li><span class="lg-chip lv-2">●</span><span class="lg-t"><b>Standard</b> — <span>proportionate, routinely run for this role.</span></span></li>
+        <li><span class="lg-chip lv-1">◐</span><span class="lg-t"><b>Role-dependent</b> — <span>run only where the specific duties justify it.</span></span></li>
+        <li><span class="lg-chip lv-0">·</span><span class="lg-t"><b>Not proportionate</b> — <span>generally excessive for this role.</span></span></li>
+        <li><span class="lg-chip lv-na">×</span><span class="lg-t"><b>No legal basis</b> — <span>not available for this role in this market.</span></span></li>
+      </ul>
+    </div>
+    <div class="bgc-panel bgc-access" id="access"></div>
+  </div>
+
+  <div class="bgc-strip">
+    <span class="st-dot"></span>
+    <p><b>The model is the same everywhere:</b> the candidate holds and presents their own record. Talentech orchestrates the request and shows status only — partners run the checks, and report content never lands on Talentech's systems.</p>
+  </div>
+
+  <p class="bgc-foot"><b>Indicative proportionality guidance for sales conversations — not legal advice.</b> Final check scope is agreed with each customer (and their counsel where needed). Criminal-record and credit cells reflect each country's lawful-basis rules; all other checks vary mainly by role, not country. Reflects regulation as of June 2026 — Sweden's criminal-record rules are under active review.</p>
+</div>
+
+<div class="bgc-tip" id="tip" role="tooltip"></div>
+
+<script>
+(function(){
+  var CHECKS=[
+    {id:'id',  l:'Identity',  s:'eID'},
+    {id:'rtw', l:'Right to work', s:''},
+    {id:'edu', l:'Education', s:''},
+    {id:'ref', l:'References', s:'& history'},
+    {id:'lic', l:'Licence', s:'role-specific'},
+    {id:'crim',l:'Criminal', s:'record'},
+    {id:'credit',l:'Credit', s:'financial'},
+    {id:'sanc',l:'Sanctions', s:'PEP / media'}
+  ];
+  var ROLES=[
+    {id:'office',  l:'General office & admin', d:'Standard hire, no special trust or safety duties'},
+    {id:'child',   l:'Childcare & education', d:'Direct, ongoing contact with children'},
+    {id:'health',  l:'Healthcare & care', d:'Care of patients, elderly or disabled persons'},
+    {id:'finance', l:'Finance & accounting', d:'Authority over funds, payments or accounts'},
+    {id:'leader',  l:'Senior leadership & board', d:'Signatories, executives, regulated officeholders'},
+    {id:'security',l:'Security & safety-critical', d:'Guarding, critical infrastructure, public safety'},
+    {id:'driver',  l:'Drivers & field', d:'Operating vehicles or equipment in the field'},
+    {id:'it',      l:'IT & privileged access', d:'Admin access to systems or personal data'}
+  ];
+
+  var BASE={
+    office:  {id:2,rtw:2,edu:1,ref:2,lic:0,crim:0,credit:0,sanc:0},
+    child:   {id:2,rtw:2,edu:2,ref:2,lic:1,crim:2,credit:0,sanc:0},
+    health:  {id:2,rtw:2,edu:2,ref:2,lic:2,crim:2,credit:0,sanc:0},
+    finance: {id:2,rtw:2,edu:1,ref:2,lic:1,crim:1,credit:2,sanc:1},
+    leader:  {id:2,rtw:2,edu:1,ref:2,lic:0,crim:1,credit:2,sanc:2},
+    security:{id:2,rtw:2,edu:1,ref:2,lic:1,crim:2,credit:0,sanc:1},
+    driver:  {id:2,rtw:2,edu:0,ref:1,lic:2,crim:1,credit:0,sanc:0},
+    it:      {id:2,rtw:2,edu:1,ref:2,lic:0,crim:1,credit:0,sanc:1}
+  };
+
+  // country overrides for criminal + credit (level + note)
+  var OV={
+    SE:{crim:{
+      office:{l:0,n:'No sector basis — typically not run.'},
+      child:{l:2,n:'Sectoral extract under skollagen; candidate retrieves and presents it.'},
+      health:{l:2,n:'Sectoral (care / HVB); candidate-pulled via BankID.'},
+      finance:{l:1,n:'Only via candidate self-begäran — no employer pull.'},
+      leader:{l:1,n:'Only via candidate self-begäran — no employer pull.'},
+      security:{l:2,n:'Certain security / alarm roles; candidate-pulled.'},
+      driver:{l:1,n:'Role-dependent; candidate self-begäran only.'},
+      it:{l:1,n:'Security-critical roles only; candidate self-begäran.'}
+    },credit:{
+      finance:{l:2,n:'KuL "legitimt behov" — finance-responsibility roles. The subject is auto-notified.'},
+      leader:{l:2,n:'KuL "legitimt behov"; the subject is auto-notified.'}
+    }},
+    NO:{crim:{
+      office:{l:'na',n:'No statutory basis → a politiattest cannot be required.'},
+      child:{l:2,n:'Statutory (children). Employer confirms purpose; candidate then applies.'},
+      health:{l:2,n:'Statutory (health). Employer confirms purpose.'},
+      finance:{l:1,n:'Only where a finance statute applies. No self-pull route.'},
+      leader:{l:'na',n:'No general basis; only if a sector statute covers the role.'},
+      security:{l:2,n:'Statutory (security). Employer confirms purpose.'},
+      driver:{l:'na',n:'No statutory basis for general driving roles.'},
+      it:{l:'na',n:'No statutory basis unless a security-critical rule applies.'}
+    },credit:{
+      finance:{l:2,n:'Legitimate interest; senior finance / economic responsibility, late stage.'},
+      leader:{l:2,n:'Legitimate interest; senior economic responsibility, late stage.'}
+    }},
+    DK:{crim:{
+      office:{l:1,n:'Private straffeattest is widely used in DK — still match scope to the role.'},
+      child:{l:2,n:'Børneattest, employer-ordered via virk.dk for under-15 contact.'},
+      health:{l:2,n:'Straffeattest, candidate-presented via MitID.'},
+      finance:{l:1,n:'Candidate-presented straffeattest where the role justifies it.'},
+      leader:{l:1,n:'Candidate-presented straffeattest where the role justifies it.'},
+      security:{l:2,n:'Straffeattest for security roles; candidate-presented.'},
+      driver:{l:1,n:'Candidate-presented straffeattest where duties justify it.'},
+      it:{l:1,n:'Candidate-presented straffeattest for sensitive-access roles.'}
+    },credit:{
+      finance:{l:2,n:'"Position of trust" only; consent required.'},
+      leader:{l:2,n:'"Position of trust" only; consent required.'}
+    }},
+    FI:{crim:{
+      office:{l:'na',n:'No statutory purpose → not collected.'},
+      child:{l:2,n:'Mandatory for child work (Act 504/2002). Candidate orders the extract.'},
+      health:{l:2,n:'Elderly (2024) and disabled (2025) care; statute-based. Candidate orders.'},
+      finance:{l:1,n:'Only if a listed statutory purpose applies.'},
+      leader:{l:1,n:'Only if a listed statutory purpose applies.'},
+      security:{l:1,n:'Security roles via the Security Clearance Act (Supo) — consent applies here.'},
+      driver:{l:'na',n:'No statutory purpose for general driving roles.'},
+      it:{l:1,n:'Security-critical / listed purposes only.'}
+    },credit:{
+      finance:{l:2,n:'§5a — only the selected candidate, in a special-trust role.'},
+      leader:{l:2,n:'§5a — only the selected candidate, in a special-trust role.'}
+    }}
+  };
+
+  var GENERIC={
+    id:'Verified through a national eID (BankID, MitID, FTN / Suomi.fi) via the partner.',
+    rtw:'Right-to-work / permit check against the national authority.',
+    edu:'Verified with the issuing institution or national record (e.g. Ladok, Vitnemålsportalen).',
+    ref:'Candidate consent plus referee-identity confirmation.',
+    lic:'Professional or driving licence verified against the relevant national register.',
+    sanc:'Sanctions / PEP / adverse-media screening for risk-relevant roles.'
+  };
+
+  var MEAN={
+    2:'Standard — proportionate and routinely run for this role.',
+    1:'Role-dependent — run only where the specific duties justify it.',
+    0:'Not typically proportionate for this role.',
+    na:'Not available — no statutory basis for this role in this market.'
+  };
+  var GLYPH={2:'●',1:'◐',0:'·',na:'×'};
+
+  var ACCESS={
+    SE:{cc:'Sweden',h:'The candidate fetches their own extract',
+      b:'The candidate retrieves their belastningsregister extract with BankID and presents it; school and childcare roles use a defined sectoral extract. Talentech surfaces completion status only.',
+      note:'Legal position under active review (Gov. inquiry Dir. 2025:83, report due 2027). Treat as current best practice, not settled law.'},
+    NO:{cc:'Norway',h:'Statute first, then the candidate applies',
+      b:'A politiattest can be required only where a statute authorises it for the role — children, health, finance, security. There is no self-pull route, and outside those sectors a criminal check simply isn\'t available.',
+      note:'Norway is the structural outlier: a generic "any employer orders a check" flow is far more constrained here than in SE or DK.'},
+    DK:{cc:'Denmark',h:'The candidate shares their straffeattest',
+      b:'The candidate pulls their own private straffeattest with MitID and shares it. Child-contact roles use an employer-ordered børneattest via virk.dk. Denmark is the most permissive in practice.',
+      note:'Even where access is easy, scope should still match the role — that restraint is the point of this map.'},
+    FI:{cc:'Finland',h:'The law sets when a check is allowed',
+      b:'The law — not consent — defines when an extract (rikosrekisteriote) may be collected: work with children, the elderly or disabled. The candidate orders it personally; the employer notes only the date and keeps no copy.',
+      note:'Finland\'s "directly necessary" rule is stricter than GDPR minimisation — the tightest Nordic baseline.'}
+  };
+
+  var grid=document.getElementById('grid');
+  var tip=document.getElementById('tip');
+  var access=document.getElementById('access');
+  var current='SE';
+  var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+  function cellData(cc,role,check){
+    var o=OV[cc]&&OV[cc][check]&&OV[cc][check][role];
+    if(o) return {l:o.l,n:o.n};
+    return {l:BASE[role][check],n:(GENERIC[check]||'')};
+  }
+
+  function render(cc,animate){
+    grid.innerHTML='';
+    // corner
+    var corner=document.createElement('div');
+    corner.className='bgc-corner';
+    corner.innerHTML='<span>Role ↓ &nbsp; Check →</span>';
+    grid.appendChild(corner);
+    // column heads
+    CHECKS.forEach(function(c,i){
+      var h=document.createElement('div');
+      h.className='bgc-colhead c-'+(i+1);
+      h.innerHTML='<span class="ch-l">'+c.l+'</span>'+(c.s?'<span class="ch-s">'+c.s+'</span>':'<span class="ch-s">&nbsp;</span>');
+      h.addEventListener('mouseenter',function(){grid.classList.add('col-hl-'+(i+1));});
+      h.addEventListener('mouseleave',function(){grid.classList.remove('col-hl-'+(i+1));});
+      grid.appendChild(h);
+    });
+    // rows
+    ROLES.forEach(function(role){
+      var row=document.createElement('div');row.className='bgc-row';
+      var rl=document.createElement('div');rl.className='bgc-rolelabel';
+      rl.innerHTML='<div class="rl-l">'+role.l+'</div><div class="rl-d">'+role.d+'</div>';
+      row.appendChild(rl);
+      CHECKS.forEach(function(c,i){
+        var wrap=document.createElement('div');wrap.className='bgc-cellwrap c-'+(i+1);
+        var d=cellData(cc,role.id,c.id);
+        var lvl=d.l;
+        var btn=document.createElement('button');
+        btn.className='bgc-cell lv-'+lvl;
+        btn.type='button';
+        btn.textContent=GLYPH[lvl];
+        btn.setAttribute('aria-label',c.l+' for '+role.l+': '+MEAN[lvl]+(d.n?' '+d.n:''));
+        var th='<span class="tip-h"><em>'+c.l+'</em> · '+role.l+'</span>';
+        var tm='<span class="tip-m">'+MEAN[lvl]+'</span>';
+        var tn=d.n?'<span class="tip-n">'+d.n+'</span>':'';
+        btn._tip=th+tm+tn;
+        if(animate&&!reduce&&(c.id==='crim'||c.id==='credit')){
+          btn.classList.add('is-anim');
+          btn.style.animationDelay=(ROLES.indexOf(role)*30)+'ms';
+        }
+        bindTip(btn);
+        wrap.appendChild(btn);
+        row.appendChild(wrap);
+      });
+      grid.appendChild(row);
+    });
+    // access panel
+    var a=ACCESS[cc];
+    access.innerHTML='<span class="ac-flag">How criminal-record access works — '+a.cc+'</span>'+
+      '<p class="ac-h">'+a.h+'</p><p class="ac-b">'+a.b+'</p><p class="ac-note">'+a.note+'</p>';
+  }
+
+  function bindTip(btn){
+    btn.addEventListener('mouseenter',function(){showTip(btn);});
+    btn.addEventListener('mouseleave',hideTip);
+    btn.addEventListener('focus',function(){showTip(btn);});
+    btn.addEventListener('blur',hideTip);
+  }
+  function showTip(btn){
+    tip.innerHTML=btn._tip;
+    tip.classList.add('show');
+    var r=btn.getBoundingClientRect();
+    var tw=tip.offsetWidth, th=tip.offsetHeight;
+    var left=r.left+r.width/2-tw/2;
+    left=Math.max(10,Math.min(left,window.innerWidth-tw-10));
+    var top=r.top-th-10;
+    if(top<10) top=r.bottom+10;
+    tip.style.left=left+'px';
+    tip.style.top=top+'px';
+  }
+  function hideTip(){tip.classList.remove('show');}
+
+  // tabs
+  var tabs=Array.prototype.slice.call(document.querySelectorAll('.bgc-tab'));
+  tabs.forEach(function(t){
+    t.addEventListener('click',function(){
+      if(t.dataset.cc===current) return;
+      tabs.forEach(function(x){x.setAttribute('aria-selected', x===t?'true':'false');});
+      current=t.dataset.cc;
+      render(current,true);
+    });
+  });
+  tabs.forEach(function(t,i){
+    t.addEventListener('keydown',function(e){
+      var n;
+      if(e.key==='ArrowRight') n=tabs[(i+1)%tabs.length];
+      else if(e.key==='ArrowLeft') n=tabs[(i-1+tabs.length)%tabs.length];
+      if(n){e.preventDefault();n.focus();n.click();}
+    });
+  });
+
+  render(current,false);
+  window.addEventListener('scroll',hideTip,true);
+})();
+</script>
+</body>
+</html>
