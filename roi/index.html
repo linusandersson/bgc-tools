@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Background Check ROI — Talentech</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     CONFIG: lead capture + language live in the <script> CONFIG
+     block near the bottom. Brand: Talentech.
+     ============================================================ */
+  :root{
+    --bg:#FBFBFB; --ink:#090312; --muted:#6B6675; --line:#E7E7EF;
+    --accent:#B9B9FF;        /* pale brand purple — fills only */
+    --accent-deep:#4A3AD4;   /* accessible brand purple — text/buttons */
+    --accent-tint:#F3F3FF;
+    --bar-manual:#CFCBE0; --bar-tt:#6E5CE6;
+    --pos:#1F8A5B; --neg:#C0392B;
+    --radius:16px; --shadow:0 1px 2px rgba(9,3,18,.04), 0 10px 30px rgba(9,3,18,.06);
+    font-size:16px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,-apple-system,Segoe UI,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1120px;margin:0 auto;padding:30px 22px 72px;}
+
+  .top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:34px;}
+  .brand{font-family:'Poppins',sans-serif;font-weight:700;font-size:1.05rem;letter-spacing:-.02em;}
+  .brand span{color:var(--accent-deep);}
+  .lang{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:#fff;}
+  .lang button{font-family:'Inter',sans-serif;font-size:.8rem;font-weight:600;color:var(--muted);border:0;background:transparent;padding:7px 14px;cursor:pointer;transition:.15s;}
+  .lang button[aria-pressed="true"]{background:var(--accent-deep);color:#fff;}
+
+  .hero h1{font-family:'Poppins',sans-serif;font-weight:700;letter-spacing:-.03em;font-size:clamp(1.8rem,4.4vw,2.7rem);line-height:1.06;margin:0 0 12px;}
+  .hero p{color:var(--muted);font-size:1.04rem;max-width:52ch;margin:0 0 32px;}
+
+  .grid{display:grid;grid-template-columns:1fr;gap:24px;}
+  @media(min-width:920px){.grid{grid-template-columns:1.1fr .9fr;align-items:start;}}
+
+  .panel{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);}
+  .pad{padding:24px;}
+
+  .step{display:flex;align-items:baseline;gap:10px;margin:0 0 16px;}
+  .step .n{font-family:'Poppins',sans-serif;font-weight:700;font-size:.8rem;color:#fff;background:var(--accent-deep);width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;align-self:center;}
+  .step h2{font-family:'Poppins',sans-serif;font-weight:600;font-size:1.08rem;margin:0;letter-spacing:-.01em;}
+
+  /* check cards */
+  .checks{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px;}
+  @media(max-width:480px){.checks{grid-template-columns:1fr;}}
+  .check{
+    text-align:left;border:1.5px solid var(--line);border-radius:12px;background:#fff;cursor:pointer;
+    padding:13px 14px;transition:.15s;font-family:inherit;position:relative;
+  }
+  .check:hover{border-color:#C9C9DC;}
+  .check[aria-pressed="true"]{border-color:var(--accent-deep);background:var(--accent-tint);}
+  .check .tick{position:absolute;top:12px;right:12px;width:18px;height:18px;border-radius:50%;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;transition:.15s;}
+  .check[aria-pressed="true"] .tick{background:var(--accent-deep);border-color:var(--accent-deep);}
+  .check .tick svg{opacity:0;transition:.15s;}
+  .check[aria-pressed="true"] .tick svg{opacity:1;}
+  .check .cname{font-weight:600;font-size:.95rem;display:block;padding-right:26px;}
+  .check .cdesc{font-size:.78rem;color:var(--muted);margin-top:3px;line-height:1.3;display:block;min-height:2.1em;}
+  .check .cmin{font-size:.74rem;font-weight:600;color:var(--accent-deep);margin-top:8px;display:inline-block;font-variant-numeric:tabular-nums;}
+  .check[aria-pressed="false"] .cmin{color:var(--muted);}
+
+  .qrow{margin-top:22px;}
+  .qrow label{display:block;font-weight:600;font-size:.98rem;margin-bottom:8px;}
+  .bignum{position:relative;display:flex;align-items:center;max-width:220px;}
+  .bignum input{width:100%;font-family:'Poppins',sans-serif;font-weight:600;font-size:1.4rem;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;color:var(--ink);-moz-appearance:textfield;}
+  .bignum input::-webkit-outer-spin-button,.bignum input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+  .bignum input:focus{outline:none;border-color:var(--accent-deep);box-shadow:0 0 0 3px rgba(74,58,212,.16);}
+
+  /* collapsibles */
+  details{border-top:1px solid var(--line);}
+  .opts{margin-top:24px;border-top:1px solid var(--line);}
+  details summary{list-style:none;cursor:pointer;padding:16px 0 14px;font-size:.92rem;font-weight:600;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  details summary::-webkit-details-marker{display:none;}
+  details summary .meta{font-weight:400;color:var(--muted);font-size:.82rem;}
+  details summary .chev{transition:.2s;color:var(--muted);font-size:1.2rem;line-height:1;margin-left:auto;}
+  details[open] summary .chev{transform:rotate(45deg);}
+  details .inner{padding:4px 0 18px;}
+
+  .tline{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:9px 0;}
+  .tline .lab{font-size:.9rem;}
+  .tline .lab small{display:block;color:var(--muted);font-size:.76rem;}
+  .tline.off{opacity:.45;}
+  .miniunit{position:relative;display:flex;align-items:center;width:104px;flex:0 0 auto;}
+  .miniunit input{width:100%;font-family:'Inter',sans-serif;font-size:.92rem;font-weight:500;text-align:right;padding:8px 34px 8px 10px;border:1px solid var(--line);border-radius:9px;color:var(--ink);-moz-appearance:textfield;}
+  .miniunit input::-webkit-outer-spin-button,.miniunit input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+  .miniunit input:focus{outline:none;border-color:var(--accent-deep);box-shadow:0 0 0 3px rgba(74,58,212,.16);}
+  .miniunit .u{position:absolute;right:10px;font-size:.78rem;color:var(--muted);pointer-events:none;}
+  .derived{font-size:.82rem;color:var(--muted);margin-top:10px;}
+  .derived b{color:var(--ink);font-variant-numeric:tabular-nums;}
+
+  /* results */
+  .results{position:sticky;top:18px;overflow:hidden;background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);}
+  .rhead{background:var(--accent-tint);padding:24px;border-bottom:1px solid #ECECF8;}
+  .rlabel{font-size:.82rem;font-weight:600;color:var(--accent-deep);margin:0 0 5px;}
+  .rbig{font-family:'Poppins',sans-serif;font-weight:700;letter-spacing:-.03em;font-size:clamp(2.2rem,6.2vw,3.1rem);line-height:1;color:var(--accent-deep);font-variant-numeric:tabular-nums;}
+  .rbig.neg{color:var(--neg);}
+  .rformula{font-size:.8rem;color:var(--muted);margin-top:9px;font-variant-numeric:tabular-nums;}
+  .empty{color:var(--muted);font-size:.92rem;padding:6px 0 0;}
+
+  .rrows{padding:6px 24px;}
+  .rrow{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:14px 0;border-bottom:1px solid var(--line);}
+  .rrow:last-child{border-bottom:0;}
+  .rrow .k{font-size:.9rem;font-weight:500;}
+  .rrow .k small{display:block;color:var(--muted);font-weight:400;font-size:.76rem;font-variant-numeric:tabular-nums;margin-top:2px;}
+  .rrow .v{font-family:'Poppins',sans-serif;font-weight:600;font-size:1.18rem;font-variant-numeric:tabular-nums;white-space:nowrap;}
+
+  .faceoff{padding:18px 24px 22px;}
+  .faceoff h4{font-size:.8rem;font-weight:600;letter-spacing:.03em;color:var(--muted);text-transform:uppercase;margin:0 0 14px;}
+  .bar{margin-bottom:13px;}
+  .bar:last-child{margin-bottom:0;}
+  .bar .blab{display:flex;justify-content:space-between;font-size:.86rem;margin-bottom:5px;}
+  .bar .blab .amt{font-weight:600;font-variant-numeric:tabular-nums;}
+  .bar .track{height:14px;background:#F1F0F6;border-radius:999px;overflow:hidden;}
+  .bar .fill{height:100%;border-radius:999px;transition:width .45s cubic-bezier(.4,0,.2,1);min-width:3px;}
+  .bar.m .fill{background:var(--bar-manual);}
+  .bar.t .fill{background:var(--bar-tt);}
+
+  .riskbox{padding:18px 24px 22px;border-top:1px solid var(--line);}
+  .riskfacts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:12px;}
+  @media(max-width:440px){.riskfacts{grid-template-columns:1fr;}}
+  .fact{background:var(--accent-tint);border-radius:12px;padding:14px;}
+  .fact .num{font-family:'Poppins',sans-serif;font-weight:700;font-size:1.5rem;color:var(--accent-deep);font-variant-numeric:tabular-nums;}
+  .fact .cap{font-size:.78rem;color:var(--muted);margin-top:4px;line-height:1.35;}
+  .caveat{font-size:.79rem;color:var(--muted);line-height:1.45;border-left:3px solid var(--accent);padding-left:12px;}
+
+  .lead{padding:20px 24px 24px;border-top:1px solid var(--line);}
+  .lead h4{font-family:'Poppins',sans-serif;font-weight:600;font-size:1rem;margin:0 0 4px;}
+  .lead p{font-size:.84rem;color:var(--muted);margin:0 0 14px;}
+  .lead .row{display:flex;flex-wrap:wrap;gap:10px;}
+  .lead input{flex:1 1 160px;font-family:'Inter',sans-serif;font-size:.95rem;padding:11px 13px;border:1px solid var(--line);border-radius:10px;}
+  .lead input:focus{outline:none;border-color:var(--accent-deep);box-shadow:0 0 0 3px rgba(74,58,212,.16);}
+  .btn{font-family:'Inter',sans-serif;font-size:.95rem;font-weight:600;color:#fff;background:var(--accent-deep);border:0;border-radius:10px;padding:12px 20px;cursor:pointer;transition:.15s;flex:0 0 auto;}
+  .btn:hover{background:#3c2fc0;}
+  .btn:focus-visible{outline:3px solid rgba(74,58,212,.4);outline-offset:2px;}
+  .lead .ok{font-size:.85rem;color:var(--pos);font-weight:600;margin-top:12px;display:none;}
+  .lead .ok.show{display:block;}
+
+  .foot{margin-top:32px;font-size:.76rem;color:var(--muted);line-height:1.6;max-width:90ch;}
+  .foot b{color:var(--ink);font-weight:600;}
+
+  @media (prefers-reduced-motion: reduce){*{transition:none!important;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <div class="brand">Talent<span>tech</span></div>
+    <div class="lang" role="group" aria-label="Language">
+      <button data-lang="en" aria-pressed="true">EN</button>
+      <button data-lang="sv" aria-pressed="false">SV</button>
+    </div>
+  </div>
+
+  <div class="hero">
+    <h1 data-i18n="title">Background check ROI</h1>
+    <p data-i18n="subtitle">Pick the checks you run and how many people you hire. See the admin time you get back — and what it's worth — running them through Talentech.</p>
+  </div>
+
+  <div class="grid">
+
+    <!-- LEFT: inputs -->
+    <div class="panel pad">
+      <div class="step"><span class="n">1</span><h2 data-i18n="step1">Which checks do you run?</h2></div>
+      <div class="checks" id="checks"></div>
+
+      <div class="qrow">
+        <div class="step" style="margin-bottom:8px;"><span class="n">2</span><h2 data-i18n="step2">How many people do you hire per year?</h2></div>
+        <div class="bignum"><input type="number" id="hires" value="100" min="0" step="10"></div>
+      </div>
+
+      <div class="opts">
+        <details id="adjust">
+          <summary><span data-i18n="adjustTimes">Adjust time per check</span><span class="meta" data-i18n="adjustMeta">estimates — change to your reality</span><span class="chev">+</span></summary>
+          <div class="inner" id="adjustList"></div>
+          <div class="tline" style="border-top:1px solid var(--line);margin-top:6px;">
+            <div class="lab" data-i18n="sysLine">Time per hire through Talentech<small data-i18n="sysHint">one consent + ID; results flow back automatically</small></div>
+            <div class="miniunit"><input type="number" id="systemMin" value="5" min="0" step="1"><span class="u" data-i18n="unitMin">min</span></div>
+          </div>
+        </details>
+
+        <details id="costToggle">
+          <summary><span data-i18n="addCosts">Add per-check cost</span><span class="meta" data-i18n="optional">optional</span><span class="chev">+</span></summary>
+          <div class="inner">
+            <p style="font-size:.82rem;color:var(--muted);margin:0 0 10px;" data-i18n="costNote">Usually the same through us as direct, so leave this off to compare on time alone. Add it only if your prices differ.</p>
+            <div class="tline"><div class="lab" data-i18n="todayCost">Cost per check today</div><div class="miniunit"><input type="number" id="todayCost" placeholder="0" min="0" step="10"><span class="u">SEK</span></div></div>
+            <div class="tline"><div class="lab" data-i18n="ttCost">Talentech cost per check</div><div class="miniunit"><input type="number" id="ttCost" placeholder="0" min="0" step="10"><span class="u">SEK</span></div></div>
+          </div>
+        </details>
+
+        <details id="riskToggle">
+          <summary><span data-i18n="addRisk">Add risk context</span><span class="meta" data-i18n="optional">optional</span><span class="chev">+</span></summary>
+          <div class="inner">
+            <div class="tline"><div class="lab" data-i18n="avgSalary">Average annual salary of hires</div><div class="miniunit" style="width:128px;"><input type="number" id="avgSalary" value="516000" min="0" step="10000"><span class="u">SEK</span></div></div>
+            <div class="tline"><div class="lab" data-i18n="badHire">Cost of a bad hire (% of salary)</div><div class="miniunit"><input type="number" id="badHire" value="30" min="0" step="5"><span class="u">%</span></div></div>
+            <div class="tline"><div class="lab" data-i18n="discRate">Checks that surface a discrepancy</div><div class="miniunit"><input type="number" id="discRate" value="5" min="0" step="1"><span class="u">%</span></div></div>
+          </div>
+        </details>
+
+        <details id="assumeToggle">
+          <summary><span data-i18n="assumptions">Salary assumptions</span><span class="meta" id="rateMeta"></span><span class="chev">+</span></summary>
+          <div class="inner">
+            <div class="tline"><div class="lab" data-i18n="salary">Monthly gross salary of the person running checks</div><div class="miniunit" style="width:120px;"><input type="number" id="salary" value="48000" min="0" step="1000"><span class="u">SEK</span></div></div>
+            <div class="tline"><div class="lab" data-i18n="social">Employer social cost</div><div class="miniunit"><input type="number" id="social" value="31.42" min="0" step="0.1"><span class="u">%</span></div></div>
+            <div class="tline"><div class="lab" data-i18n="hours">Working hours per month</div><div class="miniunit"><input type="number" id="hours" value="167" min="1" step="1"><span class="u" data-i18n="unitH">h</span></div></div>
+            <div class="derived"><span data-i18n="loadedRate">Loaded cost</span>: <b id="loadedOut">378</b> <span data-i18n="perHour">SEK / hour</span></div>
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <!-- RIGHT: results -->
+    <div class="results">
+      <div class="rhead">
+        <p class="rlabel" data-i18n="netSaving">Net saving per year</p>
+        <div class="rbig" id="netOut">0 SEK</div>
+        <div class="rformula" id="netFormula"></div>
+        <div class="empty" id="emptyMsg" style="display:none;" data-i18n="emptyMsg">Select the checks you run to see your saving.</div>
+      </div>
+
+      <div class="rrows">
+        <div class="rrow"><div class="k"><span data-i18n="hoursBack">Hours given back / year</span><small id="hoursFormula"></small></div><div class="v" id="hoursOut">0 h</div></div>
+        <div class="rrow"><div class="k"><span data-i18n="labourSaved">Labour cost saved / year</span><small id="labourFormula"></small></div><div class="v" id="labourOut">0 SEK</div></div>
+      </div>
+
+      <div class="faceoff">
+        <h4 data-i18n="timePerHire">Admin time per hire</h4>
+        <div class="bar m"><div class="blab"><span data-i18n="manual">Manual</span><span class="amt" id="manualMinOut">0 min</span></div><div class="track"><div class="fill" id="manualBar" style="width:0%"></div></div></div>
+        <div class="bar t"><div class="blab"><span data-i18n="throughTt">Through Talentech</span><span class="amt" id="ttMinOut">0 min</span></div><div class="track"><div class="fill" id="ttBar" style="width:0%"></div></div></div>
+      </div>
+
+      <div class="riskbox" id="riskBox" style="display:none;">
+        <div class="riskfacts">
+          <div class="fact"><div class="num" id="discOut">0</div><div class="cap" data-i18n="discCap">candidates / year where a check surfaces a discrepancy</div></div>
+          <div class="fact"><div class="num" id="badHireOut">0 SEK</div><div class="cap" data-i18n="badHireCap">estimated cost of one bad hire</div></div>
+        </div>
+        <p class="caveat" data-i18n="caveat">A surfaced discrepancy is not the same as a bad hire avoided. These two figures are context for your own judgment — deliberately not multiplied together.</p>
+      </div>
+
+      <div class="lead">
+        <h4 data-i18n="leadTitle">Want this in writing?</h4>
+        <p data-i18n="leadSub">We'll send the full breakdown to your inbox.</p>
+        <div class="row">
+          <input type="email" id="leadEmail" data-i18n-ph="phEmail" placeholder="you@company.com">
+          <button class="btn" id="leadBtn" data-i18n="leadBtn">Email me the breakdown</button>
+        </div>
+        <div class="ok" id="leadOk" data-i18n="leadOk">Thanks — your breakdown is on its way.</div>
+      </div>
+    </div>
+  </div>
+
+  <p class="foot" id="footnote"></p>
+</div>
+
+<script>
+/* =====================================================================
+   CONFIG — set for your deployment
+   leadEndpoint : POST URL (HubSpot handler / Zapier / Make webhook).
+                  Receives JSON {email, lang, inputs, results}.
+                  If "", the button opens the visitor's mail client to leadEmail.
+   leadEmail    : mailto fallback recipient.
+   defaultLang  : "en" or "sv".
+   ===================================================================== */
+const CONFIG = { leadEndpoint:"", leadEmail:"sales@talentech.com", defaultLang:"en" };
+
+/* check types: manual-minute defaults built from the check lifecycle (editable) */
+const CHECKS = [
+  {id:"id",    min:10, on:true},
+  {id:"crim",  min:15, on:true},
+  {id:"fin",   min:15, on:false},
+  {id:"cv",    min:25, on:true},
+  {id:"edu",   min:20, on:true},
+  {id:"other", min:15, on:false}
+];
+
+const I18N = {
+  en:{
+    title:"Background check ROI",
+    subtitle:"Pick the checks you run and how many people you hire. See the admin time you get back — and what it's worth — running them through Talentech.",
+    step1:"Which checks do you run?",
+    step2:"How many people do you hire per year?",
+    adjustTimes:"Adjust time per check", adjustMeta:"estimates — change to your reality",
+    sysLine:"Time per hire through Talentech", sysHint:"one consent + ID; results flow back automatically",
+    addCosts:"Add per-check cost", optional:"optional",
+    costNote:"Usually the same through us as direct, so leave this off to compare on time alone. Add it only if your prices differ.",
+    todayCost:"Cost per check today", ttCost:"Talentech cost per check",
+    addRisk:"Add risk context",
+    avgSalary:"Average annual salary of hires", badHire:"Cost of a bad hire (% of salary)", discRate:"Checks that surface a discrepancy",
+    assumptions:"Salary assumptions",
+    salary:"Monthly gross salary of the person running checks", social:"Employer social cost", hours:"Working hours per month",
+    loadedRate:"Loaded cost", perHour:"SEK / hour",
+    netSaving:"Net saving per year",
+    emptyMsg:"Select the checks you run to see your saving.",
+    hoursBack:"Hours given back / year", labourSaved:"Labour cost saved / year",
+    timePerHire:"Admin time per hire", manual:"Manual", throughTt:"Through Talentech",
+    discCap:"candidates / year where a check surfaces a discrepancy", badHireCap:"estimated cost of one bad hire",
+    caveat:"A surfaced discrepancy is not the same as a bad hire avoided. These two figures are context for your own judgment — deliberately not multiplied together.",
+    leadTitle:"Want this in writing?", leadSub:"We'll send the full breakdown to your inbox.",
+    phEmail:"you@company.com", leadBtn:"Email me the breakdown", leadOk:"Thanks — your breakdown is on its way.",
+    unitMin:"min", unitH:"h",
+    checks:{
+      id:["ID verification","Confirms the person is who they claim"],
+      crim:["Criminal record","Police register extract"],
+      fin:["Financial / credit","Credit history, for roles with financial responsibility"],
+      cv:["CV / employment","Verifies past employers, titles and dates"],
+      edu:["Education","Confirms degrees and institutions"],
+      other:["Other","Any other check you run"]
+    },
+    foot:'Manual time per check is an estimate built from each check\u2019s real process (police extract, registrar contact, employer calls) — adjust to your own way of working. Sourced defaults you can change: employer social cost <b>31.42%</b> (Skatteverket, 2026); HR-specialist salary <b>~47,600 SEK/month</b> (SCB); discrepancy rate <b>~5%</b> of checks (Veremark Screening Benchmark 2026, ~500k checks); bad hire <b>30%</b> of first-year salary (U.S. Dept of Labor — conservative floor; SHRM ranges 50–200%).'
+  },
+  sv:{
+    title:"ROI för bakgrundskontroller",
+    subtitle:"Välj vilka kontroller ni gör och hur många ni anställer. Se hur mycket administrationstid ni får tillbaka — och vad den är värd — genom Talentech.",
+    step1:"Vilka kontroller gör ni?",
+    step2:"Hur många personer anställer ni per år?",
+    adjustTimes:"Justera tid per kontroll", adjustMeta:"uppskattningar — ändra efter er verklighet",
+    sysLine:"Tid per anställning genom Talentech", sysHint:"ett samtycke + ID; resultaten kommer in automatiskt",
+    addCosts:"Lägg till kostnad per kontroll", optional:"valfritt",
+    costNote:"Oftast samma genom oss som direkt — lämna av för att jämföra enbart på tid. Lägg till bara om era priser skiljer sig.",
+    todayCost:"Kostnad per kontroll idag", ttCost:"Talentechs kostnad per kontroll",
+    addRisk:"Lägg till riskperspektiv",
+    avgSalary:"Genomsnittlig årslön för era anställningar", badHire:"Kostnad för en felrekrytering (andel av lön)", discRate:"Andel kontroller som visar en avvikelse",
+    assumptions:"Löneantaganden",
+    salary:"Månadslön brutto (den som gör kontrollerna)", social:"Arbetsgivaravgift", hours:"Arbetstimmar per månad",
+    loadedRate:"Kostnad inkl. avgifter", perHour:"SEK / timme",
+    netSaving:"Nettobesparing per år",
+    emptyMsg:"Välj kontrollerna ni gör för att se besparingen.",
+    hoursBack:"Återvunna timmar / år", labourSaved:"Sparad arbetskostnad / år",
+    timePerHire:"Administrationstid per anställning", manual:"Manuellt", throughTt:"Genom Talentech",
+    discCap:"kandidater / år där en kontroll visar en avvikelse", badHireCap:"uppskattad kostnad för en felrekrytering",
+    caveat:"Att en avvikelse upptäcks är inte samma sak som en undviken felrekrytering. Siffrorna är underlag för er egen bedömning — medvetet inte multiplicerade.",
+    leadTitle:"Vill du ha sammanställningen?", leadSub:"Vi skickar hela uträkningen till din inkorg.",
+    phEmail:"du@foretag.se", leadBtn:"Skicka sammanställningen", leadOk:"Tack — sammanställningen är på väg.",
+    unitMin:"min", unitH:"tim",
+    checks:{
+      id:["Identitetskontroll","Bekräftar att personen är den de uppger"],
+      crim:["Belastningsregister","Utdrag ur polisens belastningsregister"],
+      fin:["Kreditupplysning","Kredithistorik, för roller med ekonomiskt ansvar"],
+      cv:["CV / anställning","Verifierar tidigare arbetsgivare, titlar och datum"],
+      edu:["Utbildning","Bekräftar examina och lärosäten"],
+      other:["Övrigt","Annan kontroll ni gör"]
+    },
+    foot:'Manuell tid per kontroll är en uppskattning byggd på varje kontrolls faktiska process (registerutdrag, kontakt med lärosäte, samtal till arbetsgivare) — justera efter ert eget arbetssätt. Förinställda värden med källa som du kan ändra: arbetsgivaravgift <b>31,42 %</b> (Skatteverket, 2026); lön HR-specialist <b>~47 600 SEK/mån</b> (SCB); avvikelsefrekvens <b>~5 %</b> av kontrollerna (Veremark Screening Benchmark 2026, ~500 000 kontroller); felrekrytering <b>30 %</b> av första årslönen (US Dept of Labor — försiktigt golv; SHRM 50–200 %).'
+  }
+};
+
+let lang = (CONFIG.defaultLang==="sv")?"sv":"en";
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const $ = id => document.getElementById(id);
+const num = id => { const v=parseFloat($(id).value); return isNaN(v)?0:v; };
+function fmt(n){ return new Intl.NumberFormat(lang==="sv"?"sv-SE":"en-US",{maximumFractionDigits:0}).format(Math.round(n)); }
+function money(n){ return fmt(n)+(lang==="sv"?" kr":" SEK"); }
+
+const displayed={};
+function tween(el,target,render){
+  if(reduceMotion){el.textContent=render(target);displayed[el.id]=target;return;}
+  const start=displayed[el.id]||0, t0=performance.now(), dur=380;
+  (function step(t){const p=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-p,3);el.textContent=render(start+(target-start)*e);if(p<1)requestAnimationFrame(step);else displayed[el.id]=target;})(performance.now());
+}
+
+/* render check cards */
+function renderChecks(){
+  const wrap=$("checks"); wrap.innerHTML="";
+  CHECKS.forEach(c=>{
+    const b=document.createElement("button");
+    b.type="button"; b.className="check"; b.dataset.id=c.id; b.setAttribute("aria-pressed",c.on);
+    b.innerHTML=`<span class="tick"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2.5 6.2l2.2 2.2 4.8-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <span class="cname" data-cn="${c.id}"></span>
+      <span class="cdesc" data-cd="${c.id}"></span>
+      <span class="cmin" data-cm="${c.id}"></span>`;
+    b.addEventListener("click",()=>{ c.on=!c.on; b.setAttribute("aria-pressed",c.on); syncAdjust(); calc(); });
+    wrap.appendChild(b);
+  });
+}
+/* render the per-check minute editors in the adjust panel */
+function renderAdjust(){
+  const list=$("adjustList"); list.innerHTML="";
+  CHECKS.forEach(c=>{
+    const row=document.createElement("div");
+    row.className="tline"+(c.on?"":" off"); row.dataset.row=c.id;
+    row.innerHTML=`<div class="lab" data-cn2="${c.id}"></div>
+      <div class="miniunit"><input type="number" id="min-${c.id}" value="${c.min}" min="0" step="1"><span class="u">${I18N[lang].unitMin}</span></div>`;
+    list.appendChild(row);
+    row.querySelector("input").addEventListener("input",()=>{ c.min=num("min-"+c.id); updateCardMins(); calc(); });
+  });
+}
+function syncAdjust(){ CHECKS.forEach(c=>{ const r=document.querySelector(`[data-row="${c.id}"]`); if(r) r.classList.toggle("off",!c.on); }); }
+function updateCardMins(){
+  const t=I18N[lang];
+  CHECKS.forEach(c=>{ const el=document.querySelector(`[data-cm="${c.id}"]`); if(el) el.textContent="≈ "+fmt(c.min)+" "+t.unitMin; });
+}
+
+function calc(){
+  const t=I18N[lang];
+  const hires=num("hires"), systemMin=num("systemMin");
+  const sel=CHECKS.filter(c=>c.on);
+  const manualMinPerHire=sel.reduce((s,c)=>s+c.min,0);
+  const selCount=sel.length;
+  const checksPerYear=hires*selCount;
+
+  const salary=num("salary"), social=num("social"), hrs=Math.max(1,num("hours"));
+  const loaded=salary*(1+social/100)/hrs;
+
+  const manualHrs=hires*manualMinPerHire/60;
+  const sysHrs=hires*systemMin/60;
+  const hoursSaved=manualHrs-sysHrs;
+  const labourSaved=hoursSaved*loaded;
+  const costDelta=(num("todayCost")-num("ttCost"))*checksPerYear;
+  const net=labourSaved+costDelta;
+
+  $("loadedOut").textContent=fmt(loaded);
+  $("rateMeta").textContent=fmt(loaded)+(lang==="sv"?" kr/tim":" SEK/h");
+
+  const none=selCount===0;
+  $("emptyMsg").style.display=none?"block":"none";
+
+  const netEl=$("netOut"); netEl.classList.toggle("neg",net<0);
+  tween(netEl,net,v=>money(v));
+  $("netFormula").textContent = none ? "" :
+    `${fmt(labourSaved)} ${lang==="sv"?"arbetskostnad":"labour"}${costDelta?(costDelta>0?" + ":" − ")+fmt(Math.abs(costDelta))+(lang==="sv"?" avgifter":" fees"):""}`;
+
+  tween($("hoursOut"),hoursSaved,v=>fmt(v)+" h");
+  $("hoursFormula").textContent=`${fmt(hires)} × ${fmt(manualMinPerHire-systemMin)} min ÷ 60`;
+  tween($("labourOut"),labourSaved,v=>money(v));
+  $("labourFormula").textContent=`${fmt(hoursSaved)} h × ${fmt(loaded)} ${lang==="sv"?"kr/tim":"SEK/h"}`;
+
+  const maxm=Math.max(manualMinPerHire,systemMin,1);
+  $("manualBar").style.width=(manualMinPerHire/maxm*100)+"%";
+  $("ttBar").style.width=(systemMin/maxm*100)+"%";
+  $("manualMinOut").textContent=fmt(manualMinPerHire)+" min";
+  $("ttMinOut").textContent=fmt(systemMin)+" min";
+
+  const ro=$("riskToggle").open;
+  $("riskBox").style.display=ro?"block":"none";
+  if(ro){
+    $("discOut").textContent=fmt(checksPerYear*num("discRate")/100);
+    $("badHireOut").textContent=money(num("avgSalary")*num("badHire")/100);
+  }
+
+  return {hires,systemMin,manualMinPerHire,selCount,checksPerYear,loaded:Math.round(loaded),
+          hoursSaved:Math.round(hoursSaved),labourSaved:Math.round(labourSaved),net:Math.round(net),
+          checks:sel.map(c=>c.id+":"+c.min)};
+}
+
+function applyLang(){
+  document.documentElement.lang=lang;
+  const t=I18N[lang];
+  document.querySelectorAll("[data-i18n]").forEach(el=>{const k=el.getAttribute("data-i18n");if(t[k]!==undefined)el.innerHTML=t[k];});
+  document.querySelectorAll("[data-i18n-ph]").forEach(el=>{const k=el.getAttribute("data-i18n-ph");if(t[k]!==undefined)el.placeholder=t[k];});
+  document.querySelectorAll("[data-cn]").forEach(el=>el.textContent=t.checks[el.getAttribute("data-cn")][0]);
+  document.querySelectorAll("[data-cd]").forEach(el=>el.textContent=t.checks[el.getAttribute("data-cd")][1]);
+  document.querySelectorAll("[data-cn2]").forEach(el=>el.textContent=t.checks[el.getAttribute("data-cn2")][0]);
+  document.querySelectorAll(".miniunit .u").forEach(()=>{});
+  // refresh mins + units that carry language
+  renderAdjust(); syncAdjust(); updateCardMins();
+  $("footnote").innerHTML=t.foot;
+  document.querySelectorAll(".lang button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.lang===lang?"true":"false"));
+  Object.keys(displayed).forEach(k=>delete displayed[k]);
+  calc();
+}
+
+function submitLead(){
+  const email=$("leadEmail").value.trim();
+  if(!email||!email.includes("@")){$("leadEmail").focus();return;}
+  const d=calc();
+  const payload={email,lang,inputs:{hires:d.hires,systemMin:d.systemMin,checks:d.checks,salary:num("salary"),social:num("social"),hours:num("hours"),todayCost:num("todayCost"),ttCost:num("ttCost")},
+    results:{manualMinPerHire:d.manualMinPerHire,checksPerYear:d.checksPerYear,loaded:d.loaded,hoursSaved:d.hoursSaved,labourSaved:d.labourSaved,net:d.net}};
+  if(CONFIG.leadEndpoint){
+    fetch(CONFIG.leadEndpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)}).catch(()=>{}).finally(()=>$("leadOk").classList.add("show"));
+  } else {
+    const subj=lang==="sv"?"Min ROI för bakgrundskontroller":"My background check ROI";
+    const body=`${lang==="sv"?"Nettobesparing per år":"Net saving per year"}: ${money(d.net)}
+${lang==="sv"?"Återvunna timmar/år":"Hours back/year"}: ${fmt(d.hoursSaved)} h
+${lang==="sv"?"Sparad arbetskostnad/år":"Labour saved/year"}: ${money(d.labourSaved)}
+${lang==="sv"?"Administrationstid per anställning manuellt":"Admin time per hire, manual"}: ${fmt(d.manualMinPerHire)} min
+${lang==="sv"?"Anställningar/år":"Hires/year"}: ${fmt(d.hires)}`;
+    window.location.href=`mailto:${CONFIG.leadEmail}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;
+    $("leadOk").classList.add("show");
+  }
+}
+
+renderChecks();
+document.querySelectorAll("#hires,#systemMin,#todayCost,#ttCost,#avgSalary,#badHire,#discRate,#salary,#social,#hours").forEach(i=>i.addEventListener("input",calc));
+["riskToggle","costToggle","assumeToggle","adjust"].forEach(id=>$(id).addEventListener("toggle",calc));
+$("leadBtn").addEventListener("click",submitLead);
+document.querySelectorAll(".lang button").forEach(b=>b.addEventListener("click",()=>{lang=b.dataset.lang;applyLang();}));
+applyLang();
+</script>
+</body>
+</html>
